@@ -26,6 +26,36 @@
     display: grid;
     gap: 12px;
   }
+  .header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .lang-switch {
+    display: flex;
+    gap: 4px;
+    background: #0c0e16;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .lang-switch button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: .82rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .lang-switch button.active {
+    background: #283593;
+    color: var(--fg);
+  }
   h1 {
     margin: 0;
     font-size: 1.35rem;
@@ -167,14 +197,20 @@
 </head>
 <body>
 <header>
-  <h1>Fraktal-Explorer</h1>
+  <div class="header-row">
+    <h1 data-i18n="title">Fraktal-Explorer</h1>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" id="langDe" class="active">DE</button>
+      <button type="button" id="langEn">EN</button>
+    </div>
+  </div>
   <p class="subtitle" id="subtitle">Mandelbrot · z₀ = 0 · c = Bildpunkt</p>
 </header>
 
 <div class="layout">
   <aside class="panel">
     <div class="field">
-      <label for="fractalType">Fraktaltyp</label>
+      <label for="fractalType" data-i18n="fractalType">Fraktaltyp</label>
       <select id="fractalType">
         <option value="mandelbrot">Mandelbrot</option>
         <option value="julia">Julia</option>
@@ -184,68 +220,68 @@
 
     <div id="section-iterate" class="mode-section">
       <div class="field">
-        <label for="formula">Formel (z-Update)</label>
+        <label for="formula" data-i18n="formula">Formel (z-Update)</label>
         <input id="formula" type="text" value="z*z + c" spellcheck="false" />
-        <span class="hint" id="formulaHint">Variablen: <code>z</code>, <code>c</code> · Operatoren: + − * / ^ · Funktionen: sin, cos, exp, sqrt, abs, conj, sqr</span>
+        <span class="hint" id="formulaHint" data-i18n-html="formulaHint">Variablen: <code>z</code>, <code>c</code> · Operatoren: + − * / ^ · Funktionen: sin, cos, exp, sqrt, abs, conj, sqr</span>
       </div>
 
       <div class="field">
-        <label>Vorlagen</label>
+        <label data-i18n="presets">Vorlagen</label>
         <div class="presets" id="iteratePresets">
-          <button type="button" data-formula="z*z + c">Mandelbrot</button>
-          <button type="button" data-formula="z*z*z + c">Kubisch</button>
-          <button type="button" data-formula="sqr(abs(z)) + c">Burning Ship</button>
-          <button type="button" data-formula="sin(z) + c">Sinus</button>
-          <button type="button" data-formula="z*z + c*c">z² + c²</button>
+          <button type="button" data-formula="z*z + c" data-i18n="presetMandel">Mandelbrot</button>
+          <button type="button" data-formula="z*z*z + c" data-i18n="presetCubic">Kubisch</button>
+          <button type="button" data-formula="sqr(abs(z)) + c" data-i18n="presetBurning">Burning Ship</button>
+          <button type="button" data-formula="sin(z) + c" data-i18n="presetSine">Sinus</button>
+          <button type="button" data-formula="z*z + c*c" data-i18n="presetZ2C2">z² + c²</button>
         </div>
       </div>
     </div>
 
     <div id="section-julia" class="mode-section hidden">
       <div class="field">
-        <label>Julia-Konstante c (Re, Im)</label>
+        <label data-i18n="juliaConstant">Julia-Konstante c (Re, Im)</label>
         <div class="row2">
           <input id="juliaRe" type="number" step="any" value="-0.7" />
           <input id="juliaIm" type="number" step="any" value="0.27015" />
         </div>
-        <span class="hint">c bleibt fest; z₀ ist der Bildpunkt in der komplexen Ebene.</span>
+        <span class="hint" data-i18n="juliaHint">c bleibt fest; z₀ ist der Bildpunkt in der komplexen Ebene.</span>
       </div>
 
       <div class="field">
-        <label>Julia-Vorlagen</label>
+        <label data-i18n="juliaPresets">Julia-Vorlagen</label>
         <div class="presets" id="juliaPresets">
-          <button type="button" data-julia="-0.7,0.27015">Klassisch</button>
-          <button type="button" data-julia="-0.8,0.156">Dendrit</button>
-          <button type="button" data-julia="-0.4,0.6">Spirale</button>
-          <button type="button" data-julia="0.285,-0.01">Elefant</button>
-          <button type="button" data-julia="-0.7269,0.1889">Spirale 2</button>
+          <button type="button" data-julia="-0.7,0.27015" data-i18n="juliaClassic">Klassisch</button>
+          <button type="button" data-julia="-0.8,0.156" data-i18n="juliaDendrite">Dendrit</button>
+          <button type="button" data-julia="-0.4,0.6" data-i18n="juliaSpiral">Spirale</button>
+          <button type="button" data-julia="0.285,-0.01" data-i18n="juliaElephant">Elefant</button>
+          <button type="button" data-julia="-0.7269,0.1889" data-i18n="juliaSpiral2">Spirale 2</button>
         </div>
       </div>
     </div>
 
     <div id="section-newton" class="mode-section hidden">
       <div class="field">
-        <label for="newtonF">Funktion f(z)</label>
+        <label for="newtonF" data-i18n="newtonF">Funktion f(z)</label>
         <input id="newtonF" type="text" value="z^3 - 1" spellcheck="false" />
       </div>
       <div class="field">
-        <label for="newtonFp">Ableitung f′(z)</label>
+        <label for="newtonFp" data-i18n="newtonFp">Ableitung f′(z)</label>
         <input id="newtonFp" type="text" value="3*z^2" spellcheck="false" />
-        <span class="hint">Newton-Schritt: z ← z − f(z)/f′(z) · Nur Variable <code>z</code></span>
+        <span class="hint" data-i18n-html="newtonHint">Newton-Schritt: z ← z − f(z)/f′(z) · Nur Variable <code>z</code></span>
       </div>
       <div class="field">
-        <label for="newtonRoots">Nullstellen (eine pro Zeile)</label>
+        <label for="newtonRoots" data-i18n="newtonRoots">Nullstellen (eine pro Zeile)</label>
         <textarea id="newtonRoots" spellcheck="false">1
 -0.5+0.8660254037844386i
 -0.5-0.8660254037844386i</textarea>
-        <span class="hint">Format: <code>1</code>, <code>-0.5+0.866i</code>, <code>0.5, -1.2</code> (Re, Im)</span>
+        <span class="hint" data-i18n-html="newtonRootsHint">Format: <code>1</code>, <code>-0.5+0.866i</code>, <code>0.5, -1.2</code> (Re, Im)</span>
       </div>
       <div class="field">
-        <label for="newtonTol">Konvergenztoleranz (|z − root| &lt;)</label>
+        <label for="newtonTol" data-i18n="newtonTol">Konvergenztoleranz (|z − root| &lt;)</label>
         <input id="newtonTol" type="number" min="1e-12" step="any" value="0.0001" />
       </div>
       <div class="field">
-        <label>Newton-Vorlagen</label>
+        <label data-i18n="newtonPresets">Newton-Vorlagen</label>
         <div class="presets" id="newtonPresets">
           <button type="button" data-newton="z3m1">z³ − 1</button>
           <button type="button" data-newton="z4m1">z⁴ − 1</button>
@@ -256,18 +292,18 @@
     </div>
 
     <div class="field">
-      <label for="maxIter">Maximale Iterationen</label>
+      <label for="maxIter" data-i18n="maxIter">Maximale Iterationen</label>
       <input id="maxIter" type="number" min="1" max="50000" step="1" value="500" />
     </div>
 
     <div id="section-bailout" class="mode-section field">
-      <label for="bailout">Abbruchkriterium (|z| &gt;)</label>
+      <label for="bailout" data-i18n="bailout">Abbruchkriterium (|z| &gt;)</label>
       <input id="bailout" type="number" min="0.1" step="any" value="2" />
-      <span class="hint">Iteration endet, sobald der Betrag von z diesen Wert überschreitet.</span>
+      <span class="hint" data-i18n="bailoutHint">Iteration endet, sobald der Betrag von z diesen Wert überschreitet.</span>
     </div>
 
     <div class="field">
-      <label>Mittelpunkt (Re, Im)</label>
+      <label data-i18n="center">Mittelpunkt (Re, Im)</label>
       <div class="row2">
         <input id="centerRe" type="number" step="any" value="-0.5" />
         <input id="centerIm" type="number" step="any" value="0" />
@@ -275,29 +311,29 @@
     </div>
 
     <div class="field">
-      <label for="edgeLength">Kantenlänge (Breite im Komplexen)</label>
+      <label for="edgeLength" data-i18n="edgeLength">Kantenlänge (Breite im Komplexen)</label>
       <input id="edgeLength" type="number" min="1e-14" step="any" value="3" />
-      <span class="hint">Horizontale Ausdehnung des sichtbaren Ausschnitts in der komplexen Ebene.</span>
+      <span class="hint" data-i18n="edgeHint">Horizontale Ausdehnung des sichtbaren Ausschnitts in der komplexen Ebene.</span>
     </div>
 
     <div class="field">
-      <label for="palette">Farbschema</label>
+      <label for="palette" data-i18n="palette">Farbschema</label>
       <select id="palette">
-        <option value="classic">Klassisch</option>
-        <option value="fire">Feuer</option>
-        <option value="ocean">Ozean</option>
-        <option value="grayscale">Graustufen</option>
+        <option value="classic" data-i18n="palClassic">Klassisch</option>
+        <option value="fire" data-i18n="palFire">Feuer</option>
+        <option value="ocean" data-i18n="palOcean">Ozean</option>
+        <option value="grayscale" data-i18n="palGray">Graustufen</option>
       </select>
     </div>
 
-    <button id="renderBtn" class="primary" type="button">Berechnen</button>
+    <button id="renderBtn" class="primary" type="button" data-i18n="render">Berechnen</button>
     <div id="error" class="error" role="alert"></div>
   </aside>
 
   <section id="vizWrap">
     <canvas id="canvas"></canvas>
     <div class="hud" id="hud">
-      Klick: Mittelpunkt setzen · Mausrad: Zoomen<br />
+      <span id="hudHelp" data-i18n="hudHelp">Klick: Mittelpunkt setzen · Mausrad: Zoomen</span><br />
       <span id="coordHud">z = —</span>
     </div>
   </section>
@@ -310,6 +346,187 @@
 <script>
 (() => {
   "use strict";
+
+  const I18N = {
+    de: {
+      title: "Fraktal-Explorer",
+      fractalType: "Fraktaltyp",
+      formula: "Formel (z-Update)",
+      formulaHint: "Variablen: <code>z</code>, <code>c</code> · Operatoren: + − * / ^ · Funktionen: sin, cos, exp, sqrt, abs, conj, sqr",
+      presets: "Vorlagen",
+      presetMandel: "Mandelbrot",
+      presetCubic: "Kubisch",
+      presetBurning: "Burning Ship",
+      presetSine: "Sinus",
+      presetZ2C2: "z² + c²",
+      juliaConstant: "Julia-Konstante c (Re, Im)",
+      juliaHint: "c bleibt fest; z₀ ist der Bildpunkt in der komplexen Ebene.",
+      juliaPresets: "Julia-Vorlagen",
+      juliaClassic: "Klassisch",
+      juliaDendrite: "Dendrit",
+      juliaSpiral: "Spirale",
+      juliaElephant: "Elefant",
+      juliaSpiral2: "Spirale 2",
+      newtonF: "Funktion f(z)",
+      newtonFp: "Ableitung f′(z)",
+      newtonHint: "Newton-Schritt: z ← z − f(z)/f′(z) · Nur Variable <code>z</code>",
+      newtonRoots: "Nullstellen (eine pro Zeile)",
+      newtonRootsHint: "Format: <code>1</code>, <code>-0.5+0.866i</code>, <code>0.5, -1.2</code> (Re, Im)",
+      newtonTol: "Konvergenztoleranz (|z − root| <)",
+      newtonPresets: "Newton-Vorlagen",
+      maxIter: "Maximale Iterationen",
+      bailout: "Abbruchkriterium (|z| >)",
+      bailoutHint: "Iteration endet, sobald der Betrag von z diesen Wert überschreitet.",
+      center: "Mittelpunkt (Re, Im)",
+      edgeLength: "Kantenlänge (Breite im Komplexen)",
+      edgeHint: "Horizontale Ausdehnung des sichtbaren Ausschnitts in der komplexen Ebene.",
+      palette: "Farbschema",
+      palClassic: "Klassisch",
+      palFire: "Feuer",
+      palOcean: "Ozean",
+      palGray: "Graustufen",
+      render: "Berechnen",
+      rendering: "Berechne…",
+      hudHelp: "Klick: Mittelpunkt setzen · Mausrad: Zoomen",
+      coordEmpty: "—",
+      mode: {
+        mandelbrot: {
+          subtitle: "Mandelbrot · z₀ = 0 · c = Bildpunkt",
+          footer: "Mandelbrot: Formel <code>z*z + c</code>, Mittelpunkt (−0,5, 0), Kantenlänge 3.",
+          coordLabel: "c"
+        },
+        julia: {
+          subtitle: "Julia · z₀ = Bildpunkt · c = Konstante",
+          footer: "Julia: Formel <code>z*z + c</code>, c ≈ (−0,7, 0,27), Mittelpunkt (0, 0).",
+          coordLabel: "z₀"
+        },
+        newton: {
+          subtitle: "Newton · z₀ = Bildpunkt · Anziehungsbecken",
+          footer: "Newton: <code>z³ − 1</code>, Nullstellen der Einheitswurzeln, Toleranz 10⁻⁴.",
+          coordLabel: "z₀"
+        }
+      },
+      err: {
+        invalidNumber: "Ungültige Zahl: {0}",
+        unknownSymbol: "Unbekanntes Symbol: {0}",
+        unexpectedChar: "Unerwartetes Zeichen: {0}",
+        syntaxAt: "Syntaxfehler bei Position {0}",
+        unexpectedEnd: "Unerwartetes Formelende",
+        syntax: "Syntaxfehler: {0}",
+        trailingTokens: "Unerwartete Zeichen am Formelende",
+        unknownOp: "Unbekannter Operator: {0}",
+        emptyRoot: "Leere Nullstelle",
+        invalidRoot: "Ungültige Nullstelle: {0}",
+        needRoot: "Mindestens eine Nullstelle angeben"
+      }
+    },
+    en: {
+      title: "Fractal Explorer",
+      fractalType: "Fractal type",
+      formula: "Formula (z update)",
+      formulaHint: "Variables: <code>z</code>, <code>c</code> · Operators: + − * / ^ · Functions: sin, cos, exp, sqrt, abs, conj, sqr",
+      presets: "Presets",
+      presetMandel: "Mandelbrot",
+      presetCubic: "Cubic",
+      presetBurning: "Burning Ship",
+      presetSine: "Sine",
+      presetZ2C2: "z² + c²",
+      juliaConstant: "Julia constant c (Re, Im)",
+      juliaHint: "c stays fixed; z₀ is the pixel in the complex plane.",
+      juliaPresets: "Julia presets",
+      juliaClassic: "Classic",
+      juliaDendrite: "Dendrite",
+      juliaSpiral: "Spiral",
+      juliaElephant: "Elephant",
+      juliaSpiral2: "Spiral 2",
+      newtonF: "Function f(z)",
+      newtonFp: "Derivative f′(z)",
+      newtonHint: "Newton step: z ← z − f(z)/f′(z) · Variable <code>z</code> only",
+      newtonRoots: "Roots (one per line)",
+      newtonRootsHint: "Format: <code>1</code>, <code>-0.5+0.866i</code>, <code>0.5, -1.2</code> (Re, Im)",
+      newtonTol: "Convergence tolerance (|z − root| <)",
+      newtonPresets: "Newton presets",
+      maxIter: "Maximum iterations",
+      bailout: "Escape criterion (|z| >)",
+      bailoutHint: "Iteration stops once |z| exceeds this value.",
+      center: "Center (Re, Im)",
+      edgeLength: "Edge length (width in ℂ)",
+      edgeHint: "Horizontal extent of the visible region in the complex plane.",
+      palette: "Color scheme",
+      palClassic: "Classic",
+      palFire: "Fire",
+      palOcean: "Ocean",
+      palGray: "Grayscale",
+      render: "Compute",
+      rendering: "Computing…",
+      hudHelp: "Click: set center · Wheel: zoom",
+      coordEmpty: "—",
+      mode: {
+        mandelbrot: {
+          subtitle: "Mandelbrot · z₀ = 0 · c = pixel",
+          footer: "Mandelbrot: formula <code>z*z + c</code>, center (−0.5, 0), edge length 3.",
+          coordLabel: "c"
+        },
+        julia: {
+          subtitle: "Julia · z₀ = pixel · c = constant",
+          footer: "Julia: formula <code>z*z + c</code>, c ≈ (−0.7, 0.27), center (0, 0).",
+          coordLabel: "z₀"
+        },
+        newton: {
+          subtitle: "Newton · z₀ = pixel · basins of attraction",
+          footer: "Newton: <code>z³ − 1</code>, roots of unity, tolerance 10⁻⁴.",
+          coordLabel: "z₀"
+        }
+      },
+      err: {
+        invalidNumber: "Invalid number: {0}",
+        unknownSymbol: "Unknown symbol: {0}",
+        unexpectedChar: "Unexpected character: {0}",
+        syntaxAt: "Syntax error at position {0}",
+        unexpectedEnd: "Unexpected end of formula",
+        syntax: "Syntax error: {0}",
+        trailingTokens: "Unexpected characters at end of formula",
+        unknownOp: "Unknown operator: {0}",
+        emptyRoot: "Empty root",
+        invalidRoot: "Invalid root: {0}",
+        needRoot: "Provide at least one root"
+      }
+    }
+  };
+
+  const LANG_KEY = "fractalExplorerLang";
+  let lang = localStorage.getItem(LANG_KEY)
+    || (navigator.language.toLowerCase().startsWith("de") ? "de" : "en");
+
+  function t(key, ...args) {
+    const parts = key.split(".");
+    let val = I18N[lang];
+    for (const p of parts) val = val?.[p];
+    if (typeof val !== "string") return key;
+    return args.reduce((s, a, i) => s.replace(`{${i}}`, a), val);
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = lang;
+    document.title = t("title");
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => {
+      el.innerHTML = t(el.dataset.i18nHtml);
+    });
+
+    document.getElementById("langDe").classList.toggle("active", lang === "de");
+    document.getElementById("langEn").classList.toggle("active", lang === "en");
+
+    if (!els.renderBtn.disabled) {
+      els.renderBtn.textContent = t("render");
+    }
+
+    updateModeUI();
+    updateCoordHudEmpty();
+  }
 
   class Complex {
     constructor(re = 0, im = 0) {
@@ -425,7 +642,7 @@
         while (j < src.length && /[0-9.eE+-]/.test(src[j])) j++;
         const raw = src.slice(i, j);
         const num = Number(raw);
-        if (!Number.isFinite(num)) throw new Error(`Ungültige Zahl: ${raw}`);
+        if (!Number.isFinite(num)) throw new Error(t("err.invalidNumber", raw));
         tokens.push({ type: "num", value: num });
         i = j;
         continue;
@@ -437,7 +654,7 @@
         const lower = name.toLowerCase();
         if (lower === "z" || lower === "c") tokens.push({ type: lower });
         else if (FUNCS.has(lower)) tokens.push({ type: "func", name: lower });
-        else throw new Error(`Unbekanntes Symbol: ${name}`);
+        else throw new Error(t("err.unknownSymbol", name));
         i = j;
         continue;
       }
@@ -446,7 +663,7 @@
         i++;
         continue;
       }
-      throw new Error(`Unerwartetes Zeichen: ${ch}`);
+      throw new Error(t("err.unexpectedChar", ch));
     }
     return tokens;
   }
@@ -457,11 +674,11 @@
 
     function peek() { return tokens[pos]; }
     function consume(expected) {
-      const t = tokens[pos++];
-      if (expected && (!t || t.type !== expected)) {
-        throw new Error(`Syntaxfehler bei Position ${pos}`);
+      const tok = tokens[pos++];
+      if (expected && (!tok || tok.type !== expected)) {
+        throw new Error(t("err.syntaxAt", String(pos)));
       }
-      return t;
+      return tok;
     }
 
     function parseExpr() {
@@ -504,28 +721,28 @@
     }
 
     function parsePrimary() {
-      const t = peek();
-      if (!t) throw new Error("Unerwartetes Formelende");
-      if (t.type === "num") { consume(); return { type: "num", value: t.value }; }
-      if (t.type === "z" || t.type === "c") { consume(); return { type: t.type }; }
-      if (t.type === "func") {
+      const tok = peek();
+      if (!tok) throw new Error(t("err.unexpectedEnd"));
+      if (tok.type === "num") { consume(); return { type: "num", value: tok.value }; }
+      if (tok.type === "z" || tok.type === "c") { consume(); return { type: tok.type }; }
+      if (tok.type === "func") {
         const name = consume().name;
         consume("(");
         const arg = parseExpr();
         consume(")");
         return { type: "func", name, arg };
       }
-      if (t.type === "(") {
+      if (tok.type === "(") {
         consume("(");
         const node = parseExpr();
         consume(")");
         return node;
       }
-      throw new Error(`Syntaxfehler: ${t.type}`);
+      throw new Error(t("err.syntax", tok.type));
     }
 
     const ast = parseExpr();
-    if (pos < tokens.length) throw new Error("Unerwartete Zeichen am Formelende");
+    if (pos < tokens.length) throw new Error(t("err.trailingTokens"));
     return ast;
   }
 
@@ -551,7 +768,7 @@
         case "*": return Complex.mul(left, right);
         case "/": return Complex.div(left, right);
         case "^": return Complex.pow(left, right);
-        default: throw new Error(`Unbekannter Operator: ${node.op}`);
+        default: throw new Error(t("err.unknownOp", node.op));
       }
     }
     return (z, c) => evalNode(ast, z, c);
@@ -559,7 +776,7 @@
 
   function parseComplexLiteral(raw) {
     const s = raw.trim().replace(/\s+/g, "");
-    if (!s) throw new Error("Leere Nullstelle");
+    if (!s) throw new Error(t("err.emptyRoot"));
     if (/^[+-]?i$/i.test(s)) {
       return new Complex(0, s[0] === "-" ? -1 : 1);
     }
@@ -567,7 +784,7 @@
       const [reS, imS] = s.split(",", 2);
       const re = parseFloat(reS);
       const im = parseFloat(imS);
-      if (!Number.isFinite(re) || !Number.isFinite(im)) throw new Error(`Ungültige Nullstelle: ${raw}`);
+      if (!Number.isFinite(re) || !Number.isFinite(im)) throw new Error(t("err.invalidRoot", raw));
       return new Complex(re, im);
     }
     const imMatch = s.match(/^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)([+-])(?:(\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)[iI]$/);
@@ -581,12 +798,12 @@
     if (imOnly) return new Complex(0, parseFloat(imOnly[1]));
     const reOnly = parseFloat(s);
     if (Number.isFinite(reOnly)) return new Complex(reOnly, 0);
-    throw new Error(`Ungültige Nullstelle: ${raw}`);
+    throw new Error(t("err.invalidRoot", raw));
   }
 
   function parseRoots(text) {
     const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
-    if (!lines.length) throw new Error("Mindestens eine Nullstelle angeben");
+    if (!lines.length) throw new Error(t("err.needRoot"));
     return lines.map(parseComplexLiteral);
   }
 
@@ -614,24 +831,6 @@
       fp: "3*z^2 + 4*z",
       roots: "0.5320888862379559\n-1.769592346195912\n-0.762558757727876",
       centerRe: -0.5, centerIm: 0, edgeLength: 4
-    }
-  };
-
-  const MODE_META = {
-    mandelbrot: {
-      subtitle: "Mandelbrot · z₀ = 0 · c = Bildpunkt",
-      footer: "Mandelbrot: Formel <code>z*z + c</code>, Mittelpunkt (−0,5, 0), Kantenlänge 3.",
-      coordLabel: "c"
-    },
-    julia: {
-      subtitle: "Julia · z₀ = Bildpunkt · c = Konstante",
-      footer: "Julia: Formel <code>z*z + c</code>, c ≈ (−0,7, 0,27), Mittelpunkt (0, 0).",
-      coordLabel: "z₀"
-    },
-    newton: {
-      subtitle: "Newton · z₀ = Bildpunkt · Basins of Attraction",
-      footer: "Newton: <code>z³ − 1</code>, Nullstellen der Einheitswurzeln, Toleranz 10⁻⁴.",
-      coordLabel: "z₀"
     }
   };
 
@@ -765,9 +964,18 @@
     els.edgeLength.value = view.edgeLength;
   }
 
+  function modeMeta(type) {
+    return I18N[lang].mode[type];
+  }
+
+  function updateCoordHudEmpty() {
+    const type = els.fractalType.value;
+    const label = modeMeta(type).coordLabel;
+    els.coordHud.textContent = `${label} = ${t("coordEmpty")}`;
+  }
+
   function updateModeUI() {
     const type = els.fractalType.value;
-    const isMandel = type === "mandelbrot";
     const isJulia = type === "julia";
     const isNewton = type === "newton";
 
@@ -776,7 +984,7 @@
     els.sectionNewton.classList.toggle("hidden", !isNewton);
     els.sectionBailout.classList.toggle("hidden", isNewton);
 
-    const meta = MODE_META[type];
+    const meta = modeMeta(type);
     els.subtitle.textContent = meta.subtitle;
     els.footerHint.innerHTML = meta.footer;
   }
@@ -929,7 +1137,7 @@
     const token = ++renderToken;
 
     els.renderBtn.disabled = true;
-    els.renderBtn.textContent = "Berechne…";
+    els.renderBtn.textContent = t("rendering");
 
     const rowsPerChunk = 16;
     for (let y0 = 0; y0 < height; y0 += rowsPerChunk) {
@@ -973,7 +1181,7 @@
     }
 
     els.renderBtn.disabled = false;
-    els.renderBtn.textContent = "Berechnen";
+    els.renderBtn.textContent = t("render");
   }
 
   function canvasCoords(evt) {
@@ -990,7 +1198,7 @@
     const { x, y } = canvasCoords(evt);
     const params = readParams();
     const { re, im } = pixelToZ(x, y, els.canvas.width, els.canvas.height, params);
-    const label = MODE_META[params.type].coordLabel;
+    const label = modeMeta(params.type).coordLabel;
     els.coordHud.textContent = `${label} = ${formatCoord(re, im)}`;
   });
 
@@ -1045,8 +1253,19 @@
   els.fractalType.addEventListener("change", () => {
     applyModeDefaults(els.fractalType.value, true);
     updateModeUI();
+    updateCoordHudEmpty();
     render();
   });
+
+  function setLanguage(next) {
+    if (next === lang) return;
+    lang = next;
+    localStorage.setItem(LANG_KEY, lang);
+    applyLanguage();
+  }
+
+  document.getElementById("langDe").addEventListener("click", () => setLanguage("de"));
+  document.getElementById("langEn").addEventListener("click", () => setLanguage("en"));
 
   els.renderBtn.addEventListener("click", render);
   [
@@ -1063,7 +1282,7 @@
     render();
   });
 
-  updateModeUI();
+  applyLanguage();
   resizeCanvas();
   render();
 })();
