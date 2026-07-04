@@ -6,6 +6,6 @@ Open Google Colab:
 
 `apfelmaennchen_mouse.py` is a Python program which allows zooming into a region of interest using the mouse.
 
-You can also run the browser app `mandelbrot_fraktal.html` in a browser, or click on this link:
+You can also run the browser app `mandelbrot_fraktal.html`, the "Fractal-Explorer" in a browser, or click on this link:
 
 https://htmlpreview.github.io/?https://github.com/TUIlmenauAMS/MandelbrotSet/blob/main/mandelbrot_fraktal.html
