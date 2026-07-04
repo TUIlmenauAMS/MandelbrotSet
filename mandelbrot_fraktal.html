@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fraktal-Explorer</title>
+<style>
+  :root {
+    --bg: #0e0f13;
+    --fg: #e8eaf0;
+    --accent: #78e3ff;
+    --muted: #b9c0cf;
+    --panel: #121420;
+    --border: #2b3345;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(1200px 800px at 70% -10%, #1a1f2a 0%, var(--bg) 55%);
+    color: var(--fg);
+    font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, Arial, sans-serif;
+  }
+  header {
+    padding: 16px 20px 8px;
+    display: grid;
+    gap: 12px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: .2px;
+  }
+  .subtitle {
+    margin: 0;
+    color: var(--muted);
+    font-size: .92rem;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 360px) 1fr;
+    gap: 14px;
+    padding: 0 16px 18px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: linear-gradient(180deg, #141824 0%, var(--panel) 100%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: grid;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  .field {
+    display: grid;
+    gap: 6px;
+  }
+  .field label {
+    color: var(--muted);
+    font-size: .88rem;
+  }
+  .field .hint {
+    color: #7f8799;
+    font-size: .78rem;
+    line-height: 1.35;
+  }
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    background: #0c0e16;
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 52px;
+    font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    font-size: .88rem;
+  }
+  input[type="number"] { font-variant-numeric: tabular-nums; }
+  .row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .presets button,
+  button.primary,
+  button.secondary {
+    border-radius: 8px;
+    padding: 8px 12px;
+    font: inherit;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  .presets button,
+  button.secondary {
+    background: #0c0e16;
+    color: var(--fg);
+  }
+  .presets button:hover,
+  button.secondary:hover { border-color: #4a5670; }
+  button.primary {
+    background: linear-gradient(180deg, #3f51b5 0%, #283593 100%);
+    border: none;
+    font-weight: 600;
+    width: 100%;
+  }
+  button.primary:disabled {
+    opacity: .55;
+    cursor: wait;
+  }
+  .mode-section.hidden { display: none; }
+  #vizWrap {
+    position: relative;
+    min-height: 420px;
+    height: calc(100vh - 120px);
+    max-height: 900px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #0b0c12 0%, #090a10 100%);
+    box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 0 0 1px #151a23;
+    overflow: hidden;
+  }
+  #canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+  }
+  .hud {
+    position: absolute;
+    left: 14px;
+    top: 10px;
+    color: #aeb6c7;
+    font-size: 12px;
+    letter-spacing: .3px;
+    text-shadow: 0 1px 0 rgba(0,0,0,.6);
+    user-select: none;
+    pointer-events: none;
+    line-height: 1.5;
+  }
+  .error {
+    color: #ff8a8a;
+    font-size: .85rem;
+    min-height: 1.2em;
+  }
+  footer {
+    padding: 0 20px 16px;
+    color: #7f8799;
+    font-size: .82rem;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fraktal-Explorer</h1>
+  <p class="subtitle" id="subtitle">Mandelbrot · z₀ = 0 · c = Bildpunkt</p>
+</header>
+
+<div class="layout">
+  <aside class="panel">
+    <div class="field">
+      <label for="fractalType">Fraktaltyp</label>
+      <select id="fractalType">
+        <option value="mandelbrot">Mandelbrot</option>
+        <option value="julia">Julia</option>
+        <option value="newton">Newton</option>
+      </select>
+    </div>
+
+    <div id="section-iterate" class="mode-section">
+      <div class="field">
+        <label for="formula">Formel (z-Update)</label>
+        <input id="formula" type="text" value="z*z + c" spellcheck="false" />
+        <span class="hint" id="formulaHint">Variablen: <code>z</code>, <code>c</code> · Operatoren: + − * / ^ · Funktionen: sin, cos, exp, sqrt, abs, conj, sqr</span>
+      </div>
+
+      <div class="field">
+        <label>Vorlagen</label>
+        <div class="presets" id="iteratePresets">
+          <button type="button" data-formula="z*z + c">Mandelbrot</button>
+          <button type="button" data-formula="z*z*z + c">Kubisch</button>
+          <button type="button" data-formula="sqr(abs(z)) + c">Burning Ship</button>
+          <button type="button" data-formula="sin(z) + c">Sinus</button>
+          <button type="button" data-formula="z*z + c*c">z² + c²</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="section-julia" class="mode-section hidden">
+      <div class="field">
+        <label>Julia-Konstante c (Re, Im)</label>
+        <div class="row2">
+          <input id="juliaRe" type="number" step="any" value="-0.7" />
+          <input id="juliaIm" type="number" step="any" value="0.27015" />
+        </div>
+        <span class="hint">c bleibt fest; z₀ ist der Bildpunkt in der komplexen Ebene.</span>
+      </div>
+
+      <div class="field">
+        <label>Julia-Vorlagen</label>
+        <div class="presets" id="juliaPresets">
+          <button type="button" data-julia="-0.7,0.27015">Klassisch</button>
+          <button type="button" data-julia="-0.8,0.156">Dendrit</button>
+          <button type="button" data-julia="-0.4,0.6">Spirale</button>
+          <button type="button" data-julia="0.285,-0.01">Elefant</button>
+          <button type="button" data-julia="-0.7269,0.1889">Spirale 2</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="section-newton" class="mode-section hidden">
+      <div class="field">
+        <label for="newtonF">Funktion f(z)</label>
+        <input id="newtonF" type="text" value="z^3 - 1" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label for="newtonFp">Ableitung f′(z)</label>
+        <input id="newtonFp" type="text" value="3*z^2" spellcheck="false" />
+        <span class="hint">Newton-Schritt: z ← z − f(z)/f′(z) · Nur Variable <code>z</code></span>
+      </div>
+      <div class="field">
+        <label for="newtonRoots">Nullstellen (eine pro Zeile)</label>
+        <textarea id="newtonRoots" spellcheck="false">1
+-0.5+0.8660254037844386i
+-0.5-0.8660254037844386i</textarea>
+        <span class="hint">Format: <code>1</code>, <code>-0.5+0.866i</code>, <code>0.5, -1.2</code> (Re, Im)</span>
+      </div>
+      <div class="field">
+        <label for="newtonTol">Konvergenztoleranz (|z − root| &lt;)</label>
+        <input id="newtonTol" type="number" min="1e-12" step="any" value="0.0001" />
+      </div>
+      <div class="field">
+        <label>Newton-Vorlagen</label>
+        <div class="presets" id="newtonPresets">
+          <button type="button" data-newton="z3m1">z³ − 1</button>
+          <button type="button" data-newton="z4m1">z⁴ − 1</button>
+          <button type="button" data-newton="z5m1">z⁵ − 1</button>
+          <button type="button" data-newton="z3p2z2">z³ + 2z² − 1</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="maxIter">Maximale Iterationen</label>
+      <input id="maxIter" type="number" min="1" max="50000" step="1" value="500" />
+    </div>
+
+    <div id="section-bailout" class="mode-section field">
+      <label for="bailout">Abbruchkriterium (|z| &gt;)</label>
+      <input id="bailout" type="number" min="0.1" step="any" value="2" />
+      <span class="hint">Iteration endet, sobald der Betrag von z diesen Wert überschreitet.</span>
+    </div>
+
+    <div class="field">
+      <label>Mittelpunkt (Re, Im)</label>
+      <div class="row2">
+        <input id="centerRe" type="number" step="any" value="-0.5" />
+        <input id="centerIm" type="number" step="any" value="0" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="edgeLength">Kantenlänge (Breite im Komplexen)</label>
+      <input id="edgeLength" type="number" min="1e-14" step="any" value="3" />
+      <span class="hint">Horizontale Ausdehnung des sichtbaren Ausschnitts in der komplexen Ebene.</span>
+    </div>
+
+    <div class="field">
+      <label for="palette">Farbschema</label>
+      <select id="palette">
+        <option value="classic">Klassisch</option>
+        <option value="fire">Feuer</option>
+        <option value="ocean">Ozean</option>
+        <option value="grayscale">Graustufen</option>
+      </select>
+    </div>
+
+    <button id="renderBtn" class="primary" type="button">Berechnen</button>
+    <div id="error" class="error" role="alert"></div>
+  </aside>
+
+  <section id="vizWrap">
+    <canvas id="canvas"></canvas>
+    <div class="hud" id="hud">
+      Klick: Mittelpunkt setzen · Mausrad: Zoomen<br />
+      <span id="coordHud">z = —</span>
+    </div>
+  </section>
+</div>
+
+<footer id="footerHint">
+  Mandelbrot: Formel <code>z*z + c</code>, Mittelpunkt (−0,5, 0), Kantenlänge 3.
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  class Complex {
+    constructor(re = 0, im = 0) {
+      this.re = re;
+      this.im = im;
+    }
+    clone() { return new Complex(this.re, this.im); }
+    mag2() { return this.re * this.re + this.im * this.im; }
+    static from(x) {
+      if (x instanceof Complex) return x.clone();
+      const n = Number(x);
+      return new Complex(n, 0);
+    }
+    static add(a, b) {
+      a = Complex.from(a); b = Complex.from(b);
+      return new Complex(a.re + b.re, a.im + b.im);
+    }
+    static sub(a, b) {
+      a = Complex.from(a); b = Complex.from(b);
+      return new Complex(a.re - b.re, a.im - b.im);
+    }
+    static mul(a, b) {
+      a = Complex.from(a); b = Complex.from(b);
+      return new Complex(
+        a.re * b.re - a.im * b.im,
+        a.re * b.im + a.im * b.re
+      );
+    }
+    static div(a, b) {
+      a = Complex.from(a); b = Complex.from(b);
+      const d = b.re * b.re + b.im * b.im;
+      if (d === 0) return new Complex(NaN, NaN);
+      return new Complex(
+        (a.re * b.re + a.im * b.im) / d,
+        (a.im * b.re - a.re * b.im) / d
+      );
+    }
+    static pow(a, b) {
+      a = Complex.from(a); b = Complex.from(b);
+      if (b.im === 0 && Number.isInteger(b.re)) {
+        const n = b.re | 0;
+        if (n === 0) return new Complex(1, 0);
+        if (n === 1) return a.clone();
+        if (n === 2) return Complex.mul(a, a);
+        let r = new Complex(1, 0);
+        let base = a.clone();
+        let exp = Math.abs(n);
+        while (exp > 0) {
+          if (exp & 1) r = Complex.mul(r, base);
+          base = Complex.mul(base, base);
+          exp >>= 1;
+        }
+        return n < 0 ? Complex.div(new Complex(1, 0), r) : r;
+      }
+      const r = Math.hypot(a.re, a.im);
+      if (r === 0) return new Complex(0, 0);
+      const theta = Math.atan2(a.im, a.re);
+      const lnR = Math.log(r);
+      const u = Math.exp(b.re * lnR - b.im * theta);
+      const v = b.re * theta + b.im * lnR;
+      return new Complex(u * Math.cos(v), u * Math.sin(v));
+    }
+    static abs(a) {
+      a = Complex.from(a);
+      return new Complex(Math.hypot(a.re, a.im), 0);
+    }
+    static conj(a) {
+      a = Complex.from(a);
+      return new Complex(a.re, -a.im);
+    }
+    static sin(a) {
+      a = Complex.from(a);
+      return new Complex(
+        Math.sin(a.re) * Math.cosh(a.im),
+        Math.cos(a.re) * Math.sinh(a.im)
+      );
+    }
+    static cos(a) {
+      a = Complex.from(a);
+      return new Complex(
+        Math.cos(a.re) * Math.cosh(a.im),
+        -Math.sin(a.re) * Math.sinh(a.im)
+      );
+    }
+    static exp(a) {
+      a = Complex.from(a);
+      const e = Math.exp(a.re);
+      return new Complex(e * Math.cos(a.im), e * Math.sin(a.im));
+    }
+    static sqrt(a) {
+      a = Complex.from(a);
+      const r = Math.hypot(a.re, a.im);
+      if (r === 0) return new Complex(0, 0);
+      const t = Math.sqrt((r + a.re) / 2);
+      const s = a.im >= 0 ? 1 : -1;
+      return new Complex(t, s * Math.sqrt((r - a.re) / 2));
+    }
+    static sqr(a) { return Complex.mul(a, a); }
+  }
+
+  const ZERO = new Complex(0, 0);
+
+  const FUNCS = new Set(["sin", "cos", "exp", "sqrt", "abs", "conj", "sqr"]);
+
+  function tokenize(src) {
+    const tokens = [];
+    let i = 0;
+    while (i < src.length) {
+      const ch = src[i];
+      if (/\s/.test(ch)) { i++; continue; }
+      if (/[0-9.]/.test(ch)) {
+        let j = i;
+        while (j < src.length && /[0-9.eE+-]/.test(src[j])) j++;
+        const raw = src.slice(i, j);
+        const num = Number(raw);
+        if (!Number.isFinite(num)) throw new Error(`Ungültige Zahl: ${raw}`);
+        tokens.push({ type: "num", value: num });
+        i = j;
+        continue;
+      }
+      if (/[a-zA-Z]/.test(ch)) {
+        let j = i;
+        while (j < src.length && /[a-zA-Z0-9_]/.test(src[j])) j++;
+        const name = src.slice(i, j);
+        const lower = name.toLowerCase();
+        if (lower === "z" || lower === "c") tokens.push({ type: lower });
+        else if (FUNCS.has(lower)) tokens.push({ type: "func", name: lower });
+        else throw new Error(`Unbekanntes Symbol: ${name}`);
+        i = j;
+        continue;
+      }
+      if ("+-*/^(),".includes(ch)) {
+        tokens.push({ type: ch });
+        i++;
+        continue;
+      }
+      throw new Error(`Unerwartetes Zeichen: ${ch}`);
+    }
+    return tokens;
+  }
+
+  function parseFormula(src) {
+    const tokens = tokenize(src.replace(/\*\*/g, "^"));
+    let pos = 0;
+
+    function peek() { return tokens[pos]; }
+    function consume(expected) {
+      const t = tokens[pos++];
+      if (expected && (!t || t.type !== expected)) {
+        throw new Error(`Syntaxfehler bei Position ${pos}`);
+      }
+      return t;
+    }
+
+    function parseExpr() {
+      let node = parseTerm();
+      while (peek() && (peek().type === "+" || peek().type === "-")) {
+        const op = consume().type;
+        node = { op, left: node, right: parseTerm() };
+      }
+      return node;
+    }
+
+    function parseTerm() {
+      let node = parsePower();
+      while (peek() && (peek().type === "*" || peek().type === "/")) {
+        const op = consume().type;
+        node = { op, left: node, right: parsePower() };
+      }
+      return node;
+    }
+
+    function parsePower() {
+      let node = parseUnary();
+      if (peek() && peek().type === "^") {
+        consume("^");
+        node = { op: "^", left: node, right: parsePower() };
+      }
+      return node;
+    }
+
+    function parseUnary() {
+      if (peek() && peek().type === "-") {
+        consume("-");
+        return { op: "neg", arg: parseUnary() };
+      }
+      if (peek() && peek().type === "+") {
+        consume("+");
+        return parseUnary();
+      }
+      return parsePrimary();
+    }
+
+    function parsePrimary() {
+      const t = peek();
+      if (!t) throw new Error("Unerwartetes Formelende");
+      if (t.type === "num") { consume(); return { type: "num", value: t.value }; }
+      if (t.type === "z" || t.type === "c") { consume(); return { type: t.type }; }
+      if (t.type === "func") {
+        const name = consume().name;
+        consume("(");
+        const arg = parseExpr();
+        consume(")");
+        return { type: "func", name, arg };
+      }
+      if (t.type === "(") {
+        consume("(");
+        const node = parseExpr();
+        consume(")");
+        return node;
+      }
+      throw new Error(`Syntaxfehler: ${t.type}`);
+    }
+
+    const ast = parseExpr();
+    if (pos < tokens.length) throw new Error("Unerwartete Zeichen am Formelende");
+    return ast;
+  }
+
+  function compileFormula(src) {
+    const ast = parseFormula(src.trim());
+    function evalNode(node, z, c) {
+      if (node.type === "num") return new Complex(node.value, 0);
+      if (node.type === "z") return z.clone();
+      if (node.type === "c") return c.clone();
+      if (node.type === "func") {
+        const arg = evalNode(node.arg, z, c);
+        return Complex[node.name](arg);
+      }
+      if (node.op === "neg") {
+        const a = evalNode(node.arg, z, c);
+        return new Complex(-a.re, -a.im);
+      }
+      const left = evalNode(node.left, z, c);
+      const right = evalNode(node.right, z, c);
+      switch (node.op) {
+        case "+": return Complex.add(left, right);
+        case "-": return Complex.sub(left, right);
+        case "*": return Complex.mul(left, right);
+        case "/": return Complex.div(left, right);
+        case "^": return Complex.pow(left, right);
+        default: throw new Error(`Unbekannter Operator: ${node.op}`);
+      }
+    }
+    return (z, c) => evalNode(ast, z, c);
+  }
+
+  function parseComplexLiteral(raw) {
+    const s = raw.trim().replace(/\s+/g, "");
+    if (!s) throw new Error("Leere Nullstelle");
+    if (/^[+-]?i$/i.test(s)) {
+      return new Complex(0, s[0] === "-" ? -1 : 1);
+    }
+    if (s.includes(",")) {
+      const [reS, imS] = s.split(",", 2);
+      const re = parseFloat(reS);
+      const im = parseFloat(imS);
+      if (!Number.isFinite(re) || !Number.isFinite(im)) throw new Error(`Ungültige Nullstelle: ${raw}`);
+      return new Complex(re, im);
+    }
+    const imMatch = s.match(/^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)([+-])(?:(\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)[iI]$/);
+    if (imMatch) {
+      const re = parseFloat(imMatch[1]);
+      const sign = imMatch[2] === "+" ? 1 : -1;
+      const im = sign * parseFloat(imMatch[3]);
+      return new Complex(re, im);
+    }
+    const imOnly = s.match(/^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)[iI]$/);
+    if (imOnly) return new Complex(0, parseFloat(imOnly[1]));
+    const reOnly = parseFloat(s);
+    if (Number.isFinite(reOnly)) return new Complex(reOnly, 0);
+    throw new Error(`Ungültige Nullstelle: ${raw}`);
+  }
+
+  function parseRoots(text) {
+    const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) throw new Error("Mindestens eine Nullstelle angeben");
+    return lines.map(parseComplexLiteral);
+  }
+
+  const NEWTON_PRESETS = {
+    z3m1: {
+      f: "z^3 - 1",
+      fp: "3*z^2",
+      roots: "1\n-0.5+0.8660254037844386i\n-0.5-0.8660254037844386i",
+      centerRe: 0, centerIm: 0, edgeLength: 3.5
+    },
+    z4m1: {
+      f: "z^4 - 1",
+      fp: "4*z^3",
+      roots: "1\n-1\ni\n-i",
+      centerRe: 0, centerIm: 0, edgeLength: 3.5
+    },
+    z5m1: {
+      f: "z^5 - 1",
+      fp: "5*z^4",
+      roots: "1\n0.809016994374947+0.587785252292473i\n0.309016994374947+0.951056516295154i\n-0.809016994374947+0.587785252292473i\n-1",
+      centerRe: 0, centerIm: 0, edgeLength: 3.8
+    },
+    z3p2z2: {
+      f: "z^3 + 2*z^2 - 1",
+      fp: "3*z^2 + 4*z",
+      roots: "0.5320888862379559\n-1.769592346195912\n-0.762558757727876",
+      centerRe: -0.5, centerIm: 0, edgeLength: 4
+    }
+  };
+
+  const MODE_META = {
+    mandelbrot: {
+      subtitle: "Mandelbrot · z₀ = 0 · c = Bildpunkt",
+      footer: "Mandelbrot: Formel <code>z*z + c</code>, Mittelpunkt (−0,5, 0), Kantenlänge 3.",
+      coordLabel: "c"
+    },
+    julia: {
+      subtitle: "Julia · z₀ = Bildpunkt · c = Konstante",
+      footer: "Julia: Formel <code>z*z + c</code>, c ≈ (−0,7, 0,27), Mittelpunkt (0, 0).",
+      coordLabel: "z₀"
+    },
+    newton: {
+      subtitle: "Newton · z₀ = Bildpunkt · Basins of Attraction",
+      footer: "Newton: <code>z³ − 1</code>, Nullstellen der Einheitswurzeln, Toleranz 10⁻⁴.",
+      coordLabel: "z₀"
+    }
+  };
+
+  const PALETTES = {
+    classic(i, max) {
+      const t = i / max;
+      const hue = (240 - t * 280 + 360) % 360;
+      const sat = 72;
+      const light = 12 + 58 * Math.pow(t, 0.55);
+      return hslToRgb(hue, sat, light);
+    },
+    fire(i, max) {
+      const t = i / max;
+      return [
+        Math.min(255, 40 + t * 400),
+        Math.min(255, t * t * 320),
+        Math.min(255, t * t * t * 180)
+      ];
+    },
+    ocean(i, max) {
+      const t = i / max;
+      return [
+        Math.min(255, 8 + t * 40),
+        Math.min(255, 30 + t * 120),
+        Math.min(255, 60 + t * 195)
+      ];
+    },
+    grayscale(i, max) {
+      const v = Math.min(255, (i / max) * 255);
+      return [v, v, v];
+    }
+  };
+
+  const ROOT_COLORS = [
+    [220, 70, 90],
+    [90, 190, 120],
+    [90, 150, 240],
+    [240, 180, 70],
+    [200, 100, 220],
+    [70, 210, 210],
+    [240, 120, 160],
+    [160, 220, 90]
+  ];
+
+  function hslToRgb(h, s, l) {
+    s /= 100; l /= 100;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+    if (h < 60) [r, g, b] = [c, x, 0];
+    else if (h < 120) [r, g, b] = [x, c, 0];
+    else if (h < 180) [r, g, b] = [0, c, x];
+    else if (h < 240) [r, g, b] = [0, x, c];
+    else if (h < 300) [r, g, b] = [x, 0, c];
+    else [r, g, b] = [c, 0, x];
+    return [
+      Math.round((r + m) * 255),
+      Math.round((g + m) * 255),
+      Math.round((b + m) * 255)
+    ];
+  }
+
+  function newtonColor(rootIndex, iterations, maxIter) {
+    const base = ROOT_COLORS[rootIndex % ROOT_COLORS.length];
+    const shade = 0.45 + 0.55 * (1 - iterations / maxIter);
+    return base.map(c => Math.round(c * shade));
+  }
+
+  const els = {
+    fractalType: document.getElementById("fractalType"),
+    formula: document.getElementById("formula"),
+    maxIter: document.getElementById("maxIter"),
+    bailout: document.getElementById("bailout"),
+    centerRe: document.getElementById("centerRe"),
+    centerIm: document.getElementById("centerIm"),
+    edgeLength: document.getElementById("edgeLength"),
+    palette: document.getElementById("palette"),
+    renderBtn: document.getElementById("renderBtn"),
+    error: document.getElementById("error"),
+    canvas: document.getElementById("canvas"),
+    coordHud: document.getElementById("coordHud"),
+    vizWrap: document.getElementById("vizWrap"),
+    subtitle: document.getElementById("subtitle"),
+    footerHint: document.getElementById("footerHint"),
+    juliaRe: document.getElementById("juliaRe"),
+    juliaIm: document.getElementById("juliaIm"),
+    newtonF: document.getElementById("newtonF"),
+    newtonFp: document.getElementById("newtonFp"),
+    newtonRoots: document.getElementById("newtonRoots"),
+    newtonTol: document.getElementById("newtonTol"),
+    sectionIterate: document.getElementById("section-iterate"),
+    sectionJulia: document.getElementById("section-julia"),
+    sectionNewton: document.getElementById("section-newton"),
+    sectionBailout: document.getElementById("section-bailout")
+  };
+
+  const ctx = els.canvas.getContext("2d", { alpha: false });
+  let renderToken = 0;
+  let view = { centerRe: -0.5, centerIm: 0, edgeLength: 3 };
+
+  function readParams() {
+    return {
+      type: els.fractalType.value,
+      formula: els.formula.value.trim(),
+      maxIter: Math.max(1, Math.min(50000, parseInt(els.maxIter.value, 10) || 500)),
+      bailout: Math.max(0.1, parseFloat(els.bailout.value) || 2),
+      centerRe: parseFloat(els.centerRe.value) || 0,
+      centerIm: parseFloat(els.centerIm.value) || 0,
+      edgeLength: Math.max(1e-14, parseFloat(els.edgeLength.value) || 3),
+      palette: els.palette.value,
+      juliaRe: parseFloat(els.juliaRe.value) || 0,
+      juliaIm: parseFloat(els.juliaIm.value) || 0,
+      newtonF: els.newtonF.value.trim(),
+      newtonFp: els.newtonFp.value.trim(),
+      newtonRoots: els.newtonRoots.value,
+      newtonTol: Math.max(1e-12, parseFloat(els.newtonTol.value) || 1e-4)
+    };
+  }
+
+  function syncViewFromInputs() {
+    const p = readParams();
+    view.centerRe = p.centerRe;
+    view.centerIm = p.centerIm;
+    view.edgeLength = p.edgeLength;
+  }
+
+  function syncInputsFromView() {
+    els.centerRe.value = view.centerRe;
+    els.centerIm.value = view.centerIm;
+    els.edgeLength.value = view.edgeLength;
+  }
+
+  function updateModeUI() {
+    const type = els.fractalType.value;
+    const isMandel = type === "mandelbrot";
+    const isJulia = type === "julia";
+    const isNewton = type === "newton";
+
+    els.sectionIterate.classList.toggle("hidden", isNewton);
+    els.sectionJulia.classList.toggle("hidden", !isJulia);
+    els.sectionNewton.classList.toggle("hidden", !isNewton);
+    els.sectionBailout.classList.toggle("hidden", isNewton);
+
+    const meta = MODE_META[type];
+    els.subtitle.textContent = meta.subtitle;
+    els.footerHint.innerHTML = meta.footer;
+  }
+
+  function applyModeDefaults(type, forceView) {
+    if (type === "mandelbrot") {
+      if (forceView) {
+        view = { centerRe: -0.5, centerIm: 0, edgeLength: 3 };
+        syncInputsFromView();
+      }
+    } else if (type === "julia") {
+      els.formula.value = "z*z + c";
+      if (forceView) {
+        view = { centerRe: 0, centerIm: 0, edgeLength: 3 };
+        syncInputsFromView();
+      }
+    } else if (type === "newton") {
+      const preset = NEWTON_PRESETS.z3m1;
+      els.newtonF.value = preset.f;
+      els.newtonFp.value = preset.fp;
+      els.newtonRoots.value = preset.roots;
+      if (forceView) {
+        view = { centerRe: preset.centerRe, centerIm: preset.centerIm, edgeLength: preset.edgeLength };
+        syncInputsFromView();
+      }
+    }
+  }
+
+  function resizeCanvas() {
+    const rect = els.vizWrap.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.floor(rect.width * dpr));
+    const h = Math.max(1, Math.floor(rect.height * dpr));
+    if (els.canvas.width !== w || els.canvas.height !== h) {
+      els.canvas.width = w;
+      els.canvas.height = h;
+    }
+  }
+
+  function pixelToZ(px, py, width, height, params) {
+    const aspect = height / width;
+    const re = params.centerRe + (px / width - 0.5) * params.edgeLength;
+    const im = params.centerIm + (py / height - 0.5) * params.edgeLength * aspect;
+    return { re, im };
+  }
+
+  function iterateMandelbrot(cRe, cIm, stepFn, maxIter, bailout) {
+    const bailout2 = bailout * bailout;
+    let z = new Complex(0, 0);
+    const c = new Complex(cRe, cIm);
+    let i = 0;
+    for (; i < maxIter; i++) {
+      if (z.mag2() > bailout2) break;
+      z = stepFn(z, c);
+      if (!Number.isFinite(z.re) || !Number.isFinite(z.im)) {
+        return { escaped: true, smooth: maxIter };
+      }
+    }
+    if (i < maxIter) {
+      const logZn = Math.log(z.mag2()) * 0.5;
+      const nu = Math.log(logZn / Math.log(bailout)) / Math.log(2);
+      return { escaped: true, smooth: i + 1 - nu };
+    }
+    return { escaped: false, smooth: maxIter };
+  }
+
+  function iterateJulia(zRe, zIm, juliaRe, juliaIm, stepFn, maxIter, bailout) {
+    const bailout2 = bailout * bailout;
+    let z = new Complex(zRe, zIm);
+    const c = new Complex(juliaRe, juliaIm);
+    let i = 0;
+    for (; i < maxIter; i++) {
+      if (z.mag2() > bailout2) break;
+      z = stepFn(z, c);
+      if (!Number.isFinite(z.re) || !Number.isFinite(z.im)) {
+        return { escaped: true, smooth: maxIter };
+      }
+    }
+    if (i < maxIter) {
+      const logZn = Math.log(z.mag2()) * 0.5;
+      const nu = Math.log(logZn / Math.log(bailout)) / Math.log(2);
+      return { escaped: true, smooth: i + 1 - nu };
+    }
+    return { escaped: false, smooth: maxIter };
+  }
+
+  function nearestRoot(z, roots, tol2) {
+    let best = -1;
+    let bestD = Infinity;
+    for (let i = 0; i < roots.length; i++) {
+      const d = Complex.sub(z, roots[i]).mag2();
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return bestD <= tol2 ? best : -1;
+  }
+
+  function iterateNewton(zRe, zIm, fFn, fpFn, roots, maxIter, tol) {
+    const tol2 = tol * tol;
+    const fpEps2 = 1e-24;
+    let z = new Complex(zRe, zIm);
+
+    let hit = nearestRoot(z, roots, tol2);
+    if (hit >= 0) return { converged: true, rootIndex: hit, iterations: 0 };
+
+    for (let i = 0; i < maxIter; i++) {
+      const fp = fpFn(z, ZERO);
+      if (fp.mag2() < fpEps2) return { converged: false };
+      const fz = fFn(z, ZERO);
+      z = Complex.sub(z, Complex.div(fz, fp));
+      if (!Number.isFinite(z.re) || !Number.isFinite(z.im)) return { converged: false };
+
+      hit = nearestRoot(z, roots, tol2);
+      if (hit >= 0) return { converged: true, rootIndex: hit, iterations: i + 1 };
+    }
+
+    hit = nearestRoot(z, roots, tol2);
+    if (hit >= 0) return { converged: true, rootIndex: hit, iterations: maxIter };
+    return { converged: false };
+  }
+
+  function formatCoord(re, im) {
+    return `${re.toPrecision(8)} ${im >= 0 ? "+" : "−"} ${Math.abs(im).toPrecision(8)} i`;
+  }
+
+  async function render() {
+    els.error.textContent = "";
+    const params = readParams();
+    syncViewFromInputs();
+
+    let stepFn, fFn, fpFn, roots;
+    try {
+      if (params.type === "mandelbrot" || params.type === "julia") {
+        stepFn = compileFormula(params.formula);
+      } else {
+        fFn = compileFormula(params.newtonF);
+        fpFn = compileFormula(params.newtonFp);
+        roots = parseRoots(params.newtonRoots);
+      }
+    } catch (err) {
+      els.error.textContent = err.message || String(err);
+      return;
+    }
+
+    resizeCanvas();
+    const width = els.canvas.width;
+    const height = els.canvas.height;
+    const image = ctx.createImageData(width, height);
+    const data = image.data;
+    const colorFn = PALETTES[params.palette] || PALETTES.classic;
+    const token = ++renderToken;
+
+    els.renderBtn.disabled = true;
+    els.renderBtn.textContent = "Berechne…";
+
+    const rowsPerChunk = 16;
+    for (let y0 = 0; y0 < height; y0 += rowsPerChunk) {
+      if (token !== renderToken) return;
+      const y1 = Math.min(height, y0 + rowsPerChunk);
+      for (let y = y0; y < y1; y++) {
+        for (let x = 0; x < width; x++) {
+          const { re, im } = pixelToZ(x, y, width, height, params);
+          const idx = (y * width + x) * 4;
+
+          if (params.type === "mandelbrot") {
+            const result = iterateMandelbrot(re, im, stepFn, params.maxIter, params.bailout);
+            if (result.escaped) {
+              const [r, g, b] = colorFn(result.smooth, params.maxIter);
+              data[idx] = r; data[idx + 1] = g; data[idx + 2] = b;
+            } else {
+              data[idx] = data[idx + 1] = data[idx + 2] = 0;
+            }
+          } else if (params.type === "julia") {
+            const result = iterateJulia(re, im, params.juliaRe, params.juliaIm, stepFn, params.maxIter, params.bailout);
+            if (result.escaped) {
+              const [r, g, b] = colorFn(result.smooth, params.maxIter);
+              data[idx] = r; data[idx + 1] = g; data[idx + 2] = b;
+            } else {
+              data[idx] = data[idx + 1] = data[idx + 2] = 0;
+            }
+          } else {
+            const result = iterateNewton(re, im, fFn, fpFn, roots, params.maxIter, params.newtonTol);
+            if (result.converged) {
+              const [r, g, b] = newtonColor(result.rootIndex, result.iterations, params.maxIter);
+              data[idx] = r; data[idx + 1] = g; data[idx + 2] = b;
+            } else {
+              data[idx] = 12; data[idx + 1] = 12; data[idx + 2] = 16;
+            }
+          }
+          data[idx + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+      await new Promise(r => requestAnimationFrame(r));
+    }
+
+    els.renderBtn.disabled = false;
+    els.renderBtn.textContent = "Berechnen";
+  }
+
+  function canvasCoords(evt) {
+    const rect = els.canvas.getBoundingClientRect();
+    const scaleX = els.canvas.width / rect.width;
+    const scaleY = els.canvas.height / rect.height;
+    return {
+      x: (evt.clientX - rect.left) * scaleX,
+      y: (evt.clientY - rect.top) * scaleY
+    };
+  }
+
+  els.canvas.addEventListener("mousemove", (evt) => {
+    const { x, y } = canvasCoords(evt);
+    const params = readParams();
+    const { re, im } = pixelToZ(x, y, els.canvas.width, els.canvas.height, params);
+    const label = MODE_META[params.type].coordLabel;
+    els.coordHud.textContent = `${label} = ${formatCoord(re, im)}`;
+  });
+
+  els.canvas.addEventListener("click", (evt) => {
+    const { x, y } = canvasCoords(evt);
+    const params = readParams();
+    const { re, im } = pixelToZ(x, y, els.canvas.width, els.canvas.height, params);
+    view.centerRe = re;
+    view.centerIm = im;
+    syncInputsFromView();
+    render();
+  });
+
+  els.canvas.addEventListener("wheel", (evt) => {
+    evt.preventDefault();
+    const factor = evt.deltaY < 0 ? 0.8 : 1.25;
+    view.edgeLength *= factor;
+    syncInputsFromView();
+    render();
+  }, { passive: false });
+
+  document.querySelectorAll("#iteratePresets [data-formula]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      els.formula.value = btn.dataset.formula;
+      render();
+    });
+  });
+
+  document.querySelectorAll("#juliaPresets [data-julia]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const [re, im] = btn.dataset.julia.split(",");
+      els.juliaRe.value = re;
+      els.juliaIm.value = im;
+      render();
+    });
+  });
+
+  document.querySelectorAll("#newtonPresets [data-newton]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const preset = NEWTON_PRESETS[btn.dataset.newton];
+      els.newtonF.value = preset.f;
+      els.newtonFp.value = preset.fp;
+      els.newtonRoots.value = preset.roots;
+      view.centerRe = preset.centerRe;
+      view.centerIm = preset.centerIm;
+      view.edgeLength = preset.edgeLength;
+      syncInputsFromView();
+      render();
+    });
+  });
+
+  els.fractalType.addEventListener("change", () => {
+    applyModeDefaults(els.fractalType.value, true);
+    updateModeUI();
+    render();
+  });
+
+  els.renderBtn.addEventListener("click", render);
+  [
+    "formula", "maxIter", "bailout", "centerRe", "centerIm", "edgeLength", "palette",
+    "juliaRe", "juliaIm", "newtonF", "newtonFp", "newtonRoots", "newtonTol"
+  ].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", (e) => {
+      if (e.key === "Enter") render();
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    resizeCanvas();
+    render();
+  });
+
+  updateModeUI();
+  resizeCanvas();
+  render();
+})();
+</script>
+</body>
+</html>
